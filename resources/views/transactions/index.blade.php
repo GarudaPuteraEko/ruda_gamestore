@@ -24,21 +24,19 @@
             </thead>
             <tbody>
                 @foreach($transactions as $transaction)
-                    @foreach($transaction->transactionItems as $item)
-                        <tr>
-                            <td class="border p-2">{{ $item->game->title }}</td>
-                            <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
-                            <td class="border p-2 text-center">
-                                @if($transaction->status === 'approved')
-                                    <a href="{{ route('games.play', $item->game->id) }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-                                        Mainkan Game
-                                    </a>
-                                @else
-                                    <span class="text-gray-500 italic">Menunggu persetujuan admin</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
+                    <tr>
+                        <td class="border p-2">{{ $transaction->game->title }}</td>
+                        <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
+                        <td class="border p-2 text-center">
+                            @if($transaction->status === 'approved')
+                                <a href="{{ route('games.play', $transaction->game->id) }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                    Mainkan Game
+                                </a>
+                            @else
+                                <span class="text-gray-500 italic">Menunggu persetujuan admin</span>
+                            @endif
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
