@@ -17,14 +17,8 @@
             @foreach ($transactions as $transaction)
             <tr>
                 <td class="p-2 border">{{ $transaction->user->name }}</td>
-                <td class="p-2 border">
-                    <ul>
-                        @foreach ($transaction->items as $item)
-                            <li>{{ $item->game->title }}</li>
-                        @endforeach
-                    </ul>
-                </td>
-                <td class="p-2 border">{{ $transaction->status }}</td>
+                <td class="p-2 border">{{ $transaction->game->title }}</td>
+                <td class="p-2 border">{{ ucfirst($transaction->status) }}</td>
                 <td class="p-2 border">
                     @if ($transaction->status == 'pending')
                         <form action="{{ route('admin.transactions.approve', $transaction->id) }}" method="POST" class="inline">

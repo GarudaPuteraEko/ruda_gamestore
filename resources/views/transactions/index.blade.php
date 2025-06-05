@@ -28,12 +28,19 @@
                         <td class="border p-2">{{ $transaction->game->title }}</td>
                         <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
                         <td class="border p-2 text-center">
-                            @if($transaction->status === 'approved')
+                            @if($transaction->status === 'success')
                                 <a href="{{ route('games.play', $transaction->game->id) }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                                     Mainkan Game
                                 </a>
-                            @else
-                                <span class="text-gray-500 italic">Menunggu persetujuan admin</span>
+                            @elseif($transaction->status === 'pending')
+                                <form action="{{ route('user.transactions.cancel', $transaction->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan transaksi ini?')">
+                                    @csrf
+                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                        Batalkan
+                                    </button>
+                                </form>
+                            @elseif($transaction->status === 'canceled')
+                                <span class="text-red-500 italic">Transaksi dibatalkan</span>
                             @endif
                         </td>
                     </tr>

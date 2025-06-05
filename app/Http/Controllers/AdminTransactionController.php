@@ -10,7 +10,7 @@ class AdminTransactionController extends Controller
     // Tampilkan semua transaksi
     public function index()
     {
-        $transactions = Transaction::with('user', 'items.game')->latest()->get();
+        $transactions = Transaction::with('user', 'game')->latest()->get();
         return view('admin.transactions.index', compact('transactions'));
     }
 
@@ -26,7 +26,7 @@ class AdminTransactionController extends Controller
     public function cancel($id)
     {
         $transaction = Transaction::findOrFail($id);
-        $transaction->update(['status' => 'cancel']);
+        $transaction->update(['status' => 'canceled']);
         return back()->with('success', 'Transaksi dibatalkan.');
     }
 }

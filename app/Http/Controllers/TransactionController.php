@@ -58,4 +58,17 @@ class TransactionController extends Controller
 
         return back()->with('success', 'Transaksi diperbarui.');
     }
+
+    public function cancel($id)
+    {
+        $transaction = Transaction::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($transaction->status === 'pending') {
+            $transaction->update(['status' => 'canceled']);
+            return back()->with('success', 'Transaksi berhasil dibatalkan.');
+        }
+
+        return back()->with('error', 'Transaksi tidak dapat dibatalkan.');
+    }
+
 }

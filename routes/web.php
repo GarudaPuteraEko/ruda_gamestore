@@ -60,6 +60,7 @@ Route::middleware(['auth', UserMiddleware::class])->prefix('user')->group(functi
     Route::delete('/games/{id}', [GameController::class, 'destroy'])->name('user.games.destroy');
     // Transaksi user
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::post('/transactions/{id}/cancel', [TransactionController::class, 'cancel'])->name('user.transactions.cancel');
 });
 
 require __DIR__.'/auth.php';
