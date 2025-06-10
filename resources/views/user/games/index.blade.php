@@ -2,9 +2,9 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-
+    
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Daftar Game</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Daftar Game</h1>
         <div class="space-x-3">
             <a href="{{ route('transactions.index') }}" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
                 Transaksi
@@ -14,7 +14,29 @@
             </a>
         </div>
     </div>
-
+    
+    <!-- Form Pencarian -->
+    <div class="mb-6">
+        <form action="{{ route('user.games.index') }}" method="GET" class="flex flex-col md:flex-row md:items-end gap-4">
+            <div class="flex-1">
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Cari Game</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Masukkan judul game..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="flex-1">
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select name="category_id" id="category_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Semua Kategori</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Cari</button>
+            </div>
+        </form>
+    </div>
+    
     @if(session('success'))
         <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
             {{ session('success') }}
@@ -33,7 +55,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @foreach ($games as $game)
+                @forelse ($games as $game)
                     <tr>
                         <td class="px-6 py-4 text-gray-800 font-semibold">{{ $game->title }}</td>
                         <td class="px-6 py-4 text-gray-700 text-sm max-w-xs whitespace-normal">
@@ -59,7 +81,11 @@
                             @endif
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

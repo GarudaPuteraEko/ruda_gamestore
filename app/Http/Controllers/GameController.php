@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Game;
 use App\Models\Transaction;
-use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
@@ -13,11 +13,29 @@ use Illuminate\Support\Facades\Auth;
 class GameController extends Controller
 {
     // Tampilkan daftar game milik user (halaman index user)
-    public function index()
+    public function index(Request $request)
     {
-        // $games = Game::where('user_id', Auth::id())->get();
-        $games = Game::all();
-        return view('user.games.index', compact('games'));
+        // Ambil semua kategori untuk dropdown
+        $categories = Category::all();
+
+        // Query dasar untuk games
+        $query = Game::query();
+
+        // Filter berdasarkan pencarian judul
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->input('search') . '%');
+        }
+
+        // Filter berdasarkan kategori
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        // Ambil data games dari query yang sudah difilter
+        $games = $query->get();
+
+        // Kembalikan view dengan games dan categories
+        return view('user.games.index', compact('games', 'categories'));
     }
 
     // Form tambah game baru
