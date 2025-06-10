@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
@@ -121,24 +122,40 @@ class GameController extends Controller
     // Hapus game milik user
     public function destroy($id)
     {
-        $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+        try {
+            // Cari game milik user yang login
+            $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        // Hapus folder game (index.html + file unzip)
-        $folderPath = storage_path("app/public/games/{$game->id}");
-        if (is_dir($folderPath)) {
-            // recursive delete
-            $this->deleteFolder($folderPath);
+            // Log untuk debug
+            Log::info('Attempting to delete game', ['id' => $game->id, 'title' => $game->title, 'user_id' => Auth::id()]);
+
+            // Hapus folder ekstraksi (games/<game_id>)
+            $folderPath = "games/{$game->id}";
+            if (Storage::disk('public')->exists($folderPath)) {
+                Log::info('Deleting folder', ['path' => $folderPath]);
+                Storage::disk('public')->deleteDirectory($folderPath);
+            } else {
+                Log::info('Folder not found', ['path' => $folderPath]);
+            }
+
+            // Hapus file zip
+            $zipPath = $game->game_file ?? "games/game_{$game->id}.zip";
+            if (Storage::disk('public')->exists($zipPath)) {
+                Log::info('Deleting file', ['path' => $zipPath]);
+                Storage::disk('public')->delete($zipPath);
+            } else {
+                Log::info('File not found', ['path' => $zipPath]);
+            }
+
+            // Hapus record game dari database
+            $game->delete();
+            Log::info('Game deleted successfully', ['id' => $game->id]);
+
+            return redirect()->route('user.games.index')->with('success', 'Game berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting game', ['id' => $id, 'error' => $e->getMessage()]);
+            return redirect()->route('user.games.index')->with('error', 'Gagal menghapus game: ' . $e->getMessage());
         }
-
-        // Hapus file zip jika masih ada
-        $zipPath = "public/games/game_{$game->id}.zip";
-        if (Storage::exists($zipPath)) {
-            Storage::delete($zipPath);
-        }
-
-        $game->delete();
-
-        return redirect()->route('user.games.index')->with('success', 'Game berhasil dihapus.');
     }
 
     // Helper fungsi hapus folder rekursif
