@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->group(function () {
     Route::resource('games', AdminAdminGameController::class)->names('admin.games');
     Route::resource('categories', CategoryController::class);
+    Route::delete('/games/{id}', [AdminAdminGameController::class, 'destroy'])->name('admin.games.destroy');
     Route::get('/transactions', [TransactionController::class, 'adminIndex'])->name('transactions.admin');
     Route::put('/transactions/{id}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::get('/admin/transactions', [AdminTransactionController::class, 'index'])->name('admin.transactions.index');

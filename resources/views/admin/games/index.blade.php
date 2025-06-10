@@ -2,6 +2,13 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <!-- Pesan Sukses -->
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
+            {{ session('success') }}
+        </div>
+    @endif
+
     
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Daftar Game</h1>
@@ -26,9 +33,13 @@
                 <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                 <select name="category_id" id="category_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Semua Kategori</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                    @endforeach
+                    @if($categories->isNotEmpty())
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
+                    @else
+                        <option value="" disabled>Tidak ada kategori tersedia</option>
+                    @endif
                 </select>
             </div>
             <div>
@@ -36,7 +47,7 @@
             </div>
         </form>
     </div>
-
+    
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
@@ -44,7 +55,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Game</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -53,10 +64,17 @@
                         <td class="px-6 py-4 text-gray-800">{{ $game->title }}</td>
                         <td class="px-6 py-4 text-gray-600">{{ $game->category->name ?? '-' }}</td>
                         <td class="px-6 py-4 text-gray-600">Rp {{ number_format($game->price, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <form action="{{ route('admin.games.destroy', $game->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus game ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">Hapus</button>
+                            </form>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
                     </tr>
                 @endforelse
             </tbody>

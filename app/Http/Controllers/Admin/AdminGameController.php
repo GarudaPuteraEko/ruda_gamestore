@@ -6,10 +6,11 @@ use App\Models\Game;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Support\Facades\Storage;
 
 class AdminGameController extends Controller
 {
-        public function index(Request $request)
+    public function index(Request $request)
     {
         // Ambil semua kategori untuk dropdown
         $categories = Category::all();
@@ -30,5 +31,26 @@ class AdminGameController extends Controller
         // Ambil data games
         $games = $query->get();
         return view('admin.games.index', compact('games', 'categories'));
+    }
+
+    public function destroy($id)
+    {
+        $game = Game::findOrFail($id);
+
+        // Hapus folder ekstraksi (misalnya: games/123)
+        $folderPath = "games/{$game->id}";
+        if (Storage::disk('public')->exists($folderPath)) {
+            Storage::disk('public')->deleteDirectory($folderPath);
+        }
+
+        // Hapus file zip
+        if ($game->game_file && Storage::disk('public')->exists($game->game_file)) {
+            Storage::disk('public')->delete($game->game_file);
+        }
+
+        // Hapus record game dari database
+        $game->delete();
+
+        return redirect()->route('admin.games.index')->with('success', 'Game berhasil dihapus.');
     }
 }
