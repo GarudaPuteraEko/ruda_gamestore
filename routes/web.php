@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
     // Main game (admin atau user yang beli)
-    Route::get('/games/{id}/play', [GameController::class, 'play'])->name('games.play');
+    Route::get('/games/{id}/play', [GameController::class, 'play'])->name('user.games.play');
 
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

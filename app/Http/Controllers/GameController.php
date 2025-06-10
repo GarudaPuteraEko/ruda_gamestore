@@ -39,7 +39,9 @@ class GameController extends Controller
         ]);
 
         // Simpan file ke storage/public/games
-        $filePath = $request->file('file')->store('games', 'public');
+        $file = $request->file('file');
+        $fileName = 'game_' . time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('games', $fileName, 'public');
 
         // Simpan data ke database
         Game::create([
@@ -140,20 +142,70 @@ class GameController extends Controller
         $game = Game::findOrFail($id);
 
         // Admin boleh main game siapa saja
-        if (Auth::user()->role === 'admin') {
-            return view('games.play', compact('game'));
+        if (Auth::user()->role !== 'admin') {
+            // Cek apakah user sudah beli game ini dengan status success
+            $transaction = Transaction::where('user_id', Auth::id())
+                ->where('game_id', $id)
+                ->where('status', 'success')
+                ->first();
+
+            if (!$transaction) {
+                return redirect()->route('user.games.index')->with('error', 'Kamu belum membeli game ini.');
+            }
         }
 
-        // Cek apakah user sudah beli game ini dengan status success
-        $transaction = Transaction::where('user_id', Auth::id())
-            ->where('game_id', $id)
-            ->where('status', 'success')
-            ->first();
+        // Path folder untuk ekstraksi (misalnya: storage/app/public/games/123)
+        $extractPath = "games/{$game->id}";
+        $htmlFilePath = "{$extractPath}/index.html";
 
-        if (!$transaction) {
-            return redirect()->route('user.games.index')->with('error', 'Kamu belum membeli game ini.');
+        // Cek apakah file .html sudah ada (sudah diekstrak sebelumnya)
+        if (!Storage::disk('public')->exists($htmlFilePath)) {
+            // Pastikan file .zip ada
+            if (!Storage::disk('public')->exists($game->game_file)) {
+                return redirect()->route('user.games.index')->with('error', 'File game tidak ditemukan.');
+            }
+
+            // Ekstrak file .zip
+            $zip = new ZipArchive;
+            $zipPath = storage_path('app/public/' . $game->game_file);
+            $extractTo = storage_path('app/public/' . $extractPath);
+
+            if ($zip->open($zipPath) === true) {
+                $zip->extractTo($extractTo);
+                $zip->close();
+
+                // Verifikasi apakah index.html ada setelah ekstraksi
+                if (!Storage::disk('public')->exists($htmlFilePath)) {
+                    // Cari file .html lain di folder ekstraksi (termasuk subfolder)
+                    $files = Storage::disk('public')->allFiles($extractPath);
+                    $htmlFile = null;
+                    foreach ($files as $file) {
+                        if (pathinfo($file, PATHINFO_EXTENSION) === 'html') {
+                            $htmlFile = $file;
+                            break;
+                        }
+                    }
+
+                    if (!$htmlFile) {
+                        // Hapus folder ekstraksi jika gagal
+                        Storage::disk('public')->deleteDirectory($extractPath);
+                        return redirect()->route('user.games.index')->with('error', 'File HTML tidak ditemukan di dalam .zip.');
+                    }
+
+                    $htmlFilePath = $htmlFile;
+                }
+            } else {
+                return redirect()->route('user.games.index')->with('error', 'Gagal mengekstrak file .zip.');
+            }
         }
 
-        return view('games.play', compact('game'));
+        // Log untuk debugging
+        \Log::info('HTML File Path: ' . $htmlFilePath);
+
+        // Kirim data game dan path file HTML ke view
+        return view('user.games.play', [
+            'game' => $game,
+            'htmlFilePath' => Storage::url($htmlFilePath), // URL ke file .html
+        ]);
     }
 }

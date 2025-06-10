@@ -29,7 +29,7 @@
                         <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
                         <td class="border p-2 text-center">
                             @if($transaction->status === 'success')
-                                <a href="{{ route('games.play', $transaction->game->id) }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                <a href="{{ route('user.games.play', $transaction->game->id) }}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                                     Mainkan Game
                                 </a>
                             @elseif($transaction->status === 'pending')
