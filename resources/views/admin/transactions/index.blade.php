@@ -7,11 +7,12 @@
     <table class="w-full border">
         <thead>
             <tr class="bg-gray-100">
-                <th class="p-2 border">User</th>
+                <th class="p-2 border">Pembeli</th>
                 <th class="p-2 border">Gambar</th>
                 <th class="p-2 border">Game</th>
                 <th class="p-2 border">Kategori</th>
                 <th class="p-2 border">Harga</th>
+                <th class="p-2 border">Pembuat</th>
                 <th class="p-2 border">Status</th>
                 <th class="p-2 border">Aksi</th>
             </tr>
@@ -30,8 +31,11 @@
                 <td class="p-2 border">{{ $transaction->game->title }}</td>
                 <td class="px-6 py-4 text-gray-600">{{ $transaction->game->category->name ?? '-' }}</td>
                 <td class="border p-2 text-left">Rp {{ number_format($transaction->game->price, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-gray-600">
+                    {{ $transaction->game->user ? $transaction->game->user->name : 'Admin' }}
+                </td>
                 <td class="p-2 border">{{ ucfirst($transaction->status) }}</td>
-                <td class="p-2 border">
+                <td class="p-2 border text-center">
                     @if ($transaction->status == 'pending')
                         <form action="{{ route('admin.transactions.approve', $transaction->id) }}" method="POST" class="inline">
                             @csrf

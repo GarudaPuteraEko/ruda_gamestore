@@ -22,6 +22,7 @@
                     <th class="border p-2 text-left">Deskripsi</th>
                     <th class="border p-2 text-left">Kategori</th>
                     <th class="border p-2 text-left">Harga</th>
+                    <th class="border p-2 text-left">Pembuat</th>
                     <th class="border p-2 text-left">Status</th>
                     <th class="border p-2 text-center">Aksi</th>
                 </tr>
@@ -42,6 +43,9 @@
                         </td>
                         <td class="px-6 py-4 text-gray-600">{{ $transaction->game->category->name ?? '-' }}</td>
                         <td class="border p-2 text-left">Rp {{ number_format($transaction->game->price, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-gray-600">
+                            {{ $transaction->game->user ? $transaction->game->user->name : 'Admin' }}
+                        </td>
                         <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
                         <td class="border p-2 text-center">
                             @if($transaction->status === 'success')

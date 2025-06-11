@@ -57,6 +57,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pembuat</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -76,6 +77,9 @@
                         </td>
                         <td class="px-6 py-4 text-gray-600">{{ $game->category->name ?? '-' }}</td>
                         <td class="px-6 py-4 text-gray-600">Rp {{ number_format($game->price, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-gray-600">
+                            {{ $game->user ? $game->user->name : 'Admin' }}
+                        </td>
                         <td class="px-6 py-4 text-center space-x-2">
                             @if(auth()->id() == $game->user_id)
                                 <a href="{{ route('user.games.edit', $game) }}" class="text-blue-500 hover:underline">Edit</a>

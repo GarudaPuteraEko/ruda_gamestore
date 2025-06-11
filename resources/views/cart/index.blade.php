@@ -27,7 +27,8 @@
                     <th class="border p-2 text-left">Nama Game</th>
                     <th class="border p-2 text-left">Deskripsi</th>
                     <th class="border p-2 text-left">Kategori</th>
-                    <th class="border p-2 text-right">Harga</th>
+                    <th class="border p-2 text-left">Harga</th>
+                    <th class="border p-2 text-left">Pembuat</th>
                     <th class="border p-2 text-center">Aksi</th>
                 </tr>
             </thead>
@@ -46,7 +47,10 @@
                         {{ Str::limit($cart->game->description, 100, '...') }}
                     </td>
                     <td class="px-6 py-4 text-gray-600">{{ $cart->game->category->name ?? '-' }}</td>
-                    <td class="border p-2 text-right">Rp {{ number_format($cart->game->price, 0, ',', '.') }}</td>
+                    <td class="border p-2 text-left">Rp {{ number_format($cart->game->price, 0, ',', '.') }}</td>
+                    <td class="px-6 py-4 text-gray-600">
+                        {{ $cart->game->user ? $cart->game->user->name : 'Admin' }}
+                    </td>
                     <td class="border p-2 text-center">
                         <form action="{{ route('cart.remove', $cart->game->id) }}" method="POST" onsubmit="return confirm('Hapus game dari keranjang?');">
                             @csrf
