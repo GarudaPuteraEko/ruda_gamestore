@@ -17,7 +17,11 @@
         <table class="min-w-full border border-gray-300 mb-6">
             <thead>
                 <tr class="bg-gray-100">
-                    <th class="border p-2 text-left">Judul Game</th>
+                    <th class="border p-2 text-left">Gambar</th>
+                    <th class="border p-2 text-left">Nama Game</th>
+                    <th class="border p-2 text-left">Deskripsi</th>
+                    <th class="border p-2 text-left">Kategori</th>
+                    <th class="border p-2 text-left">Harga</th>
                     <th class="border p-2 text-left">Status</th>
                     <th class="border p-2 text-center">Aksi</th>
                 </tr>
@@ -25,7 +29,19 @@
             <tbody>
                 @foreach($transactions as $transaction)
                     <tr>
+                        <td class="px-6 py-4">
+                            @if ($transaction->game->image)
+                                <img src="{{ Storage::url($transaction->game->image) }}" alt="{{ $transaction->game->title }}" class="h-16 w-16 object-cover rounded">
+                            @else
+                                <span class="text-gray-500 text-sm">No Image</span>
+                            @endif
+                        </td>
                         <td class="border p-2">{{ $transaction->game->title }}</td>
+                        <td class="px-6 py-4 text-gray-700 text-sm max-w-xs whitespace-normal">
+                            {{ Str::limit($transaction->game->description, 100, '...') }}
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ $transaction->game->category->name ?? '-' }}</td>
+                        <td class="border p-2 text-left">Rp {{ number_format($transaction->game->price, 0, ',', '.') }}</td>
                         <td class="border p-2">{{ ucfirst($transaction->status) }}</td>
                         <td class="border p-2 text-center">
                             @if($transaction->status === 'success')

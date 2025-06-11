@@ -52,7 +52,9 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gambar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Game</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -61,7 +63,17 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse ($games as $game)
                     <tr>
+                        <td class="px-6 py-4">
+                            @if ($game->image)
+                                <img src="{{ Storage::url($game->image) }}" alt="{{ $game->title }}" class="h-16 w-16 object-cover rounded">
+                            @else
+                                <span class="text-gray-500 text-sm">No Image</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-gray-800">{{ $game->title }}</td>
+                        <td class="px-6 py-4 text-gray-700 text-sm max-w-xs whitespace-normal">
+                            {{ Str::limit($game->description, 100, '...') }}
+                        </td>
                         <td class="px-6 py-4 text-gray-600">{{ $game->category->name ?? '-' }}</td>
                         <td class="px-6 py-4 text-gray-600">Rp {{ number_format($game->price, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 text-center">
