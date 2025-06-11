@@ -42,11 +42,17 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <div class="bg-white shadow rounded-lg overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gambar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Game</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
@@ -57,6 +63,13 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse ($games as $game)
                     <tr>
+                        <td class="px-6 py-4">
+                            @if ($game->image)
+                                <img src="{{ Storage::url($game->image) }}" alt="{{ $game->title }}" class="h-16 w-16 object-cover rounded">
+                            @else
+                                <span class="text-gray-500 text-sm">No Image</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-gray-800 font-semibold">{{ $game->title }}</td>
                         <td class="px-6 py-4 text-gray-700 text-sm max-w-xs whitespace-normal">
                             {{ Str::limit($game->description, 100, '...') }}
@@ -83,7 +96,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
                     </tr>
                 @endforelse
             </tbody>

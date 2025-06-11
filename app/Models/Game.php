@@ -15,6 +15,7 @@ class Game extends Model
         'title',
         'description',
         'game_file',
+        'image',
         'price',
     ];
 

@@ -42,94 +42,133 @@ class GameController extends Controller
     // Form tambah game baru
     public function create()
     {
-        $categories = \App\Models\Category::all();
+        $categories = Category::all(); // Perbaiki, hapus \App\Models
         return view('user.games.create', compact('categories'));
     }
 
     // Simpan game baru
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-            'file' => 'required|mimes:zip,html|max:51200', // max 50MB
-            'price' => 'required|integer|min:0',
-        ]);
+        try {
+            Log::info('Store game raw input', [
+                'input' => $request->all(),
+                'files' => $request->file(),
+                'user_id' => Auth::id(),
+            ]);
 
-        // Simpan file ke storage/public/games
-        $file = $request->file('file');
-        $fileName = 'game_' . time() . '_' . $file->getClientOriginalName();
-        $filePath = $file->storeAs('games', $fileName, 'public');
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'category_id' => 'required|exists:categories,id',
+                'file' => 'required|mimes:zip,html|max:51200', // max 50MB
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // max 2MB
+                'price' => 'required|integer|min:0',
+            ]);
 
-        // Simpan data ke database
-        Game::create([
-            'user_id' => Auth::id(),
-            'category_id' => $request->category_id,
-            'title' => $request->title,
-            'description' => $request->description,
-            'game_file' => $filePath,
-            'price' => $request->price,
-        ]);
+            // Simpan file game
+            $file = $request->file('file');
+            $fileName = 'game_' . time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('games', $fileName, 'public');
+            Log::info('Game file uploaded', ['path' => $filePath]);
 
-        return redirect()->route('user.games.index')->with('success', 'Game berhasil ditambahkan!');
+            // Simpan gambar (jika ada)
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageFileName = 'game_' . time() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('images', $imageFileName, 'public');
+                Log::info('Image uploaded', ['path' => $imagePath]);
+            }
+
+            // Simpan data ke database
+            $game = Game::create([
+                'user_id' => Auth::id(),
+                'category_id' => $request->category_id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'game_file' => $filePath,
+                'image' => $imagePath,
+                'price' => $request->price,
+            ]);
+            Log::info('Game record created', ['id' => $game->id, 'title' => $game->title]);
+
+            return redirect()->route('user.games.index')->with('success', 'Game berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            Log::error('Error creating game', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return redirect()->route('user.games.create')->with('error', 'Gagal menambahkan game: ' . $e->getMessage());
+        }
     }
 
     // Form edit game milik user
     public function edit($id)
     {
         $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-        $categories = \App\Models\Category::all();
+        $categories = Category::all(); // Perbaiki, hapus \App\Models
         return view('user.games.edit', compact('game', 'categories'));
     }
 
-    // Update game milik user
     public function update(Request $request, $id)
     {
-        $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+        try {
+            $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric',
-            'category_id' => 'required|exists:categories,id',
-            'file' => 'nullable|file|mimes:zip|max:10240', // Maksimal 10MB
-        ]);
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string', // Ubah ke nullable, konsisten dengan store
+                'category_id' => 'required|exists:categories,id',
+                'file' => 'nullable|mimes:zip,html|max:51200', // max 50MB
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // max 2MB
+                'price' => 'required|integer|min:0', // Ubah ke integer, konsisten dengan store
+            ]);
 
-        $data = [
-            'title' => $request->title,
-            'description' => $request->description,
-            'price' => $request->price,
-            'category_id' => $request->category_id,
-        ];
+            $data = [
+                'title' => $request->title,
+                'description' => $request->description,
+                'category_id' => $request->category_id,
+                'price' => $request->price,
+            ];
 
-        // Jika user upload file baru
-        if ($request->hasFile('file')) {
-            // Hapus file lama jika ada
-            if ($game->game_file && Storage::exists($game->game_file)) {
-                Storage::delete($game->game_file);
+            // Update file game jika ada
+            if ($request->hasFile('file')) {
+                if ($game->game_file && Storage::disk('public')->exists($game->game_file)) {
+                    Log::info('Deleting old game file', ['path' => $game->game_file]);
+                    Storage::disk('public')->delete($game->game_file);
+                }
+                $file = $request->file('file');
+                $fileName = 'game_' . time() . '_' . $file->getClientOriginalName();
+                $data['game_file'] = $file->storeAs('games', $fileName, 'public');
+                Log::info('New game file uploaded', ['path' => $data['game_file']]);
             }
 
-            // Simpan file baru
-            $data['game_file'] = $request->file('file')->store('games');
+            // Update gambar jika ada
+            if ($request->hasFile('image')) {
+                if ($game->image && Storage::disk('public')->exists($game->image)) {
+                    Log::info('Deleting old image', ['path' => $game->image]);
+                    Storage::disk('public')->delete($game->image);
+                }
+                $image = $request->file('image');
+                $imageFileName = 'game_' . time() . '.' . $image->getClientOriginalExtension();
+                $data['image'] = $image->storeAs('images', $imageFileName, 'public');
+                Log::info('New image uploaded', ['path' => $data['image']]);
+            }
+
+            $game->update($data);
+            Log::info('Game updated successfully', ['id' => $game->id, 'title' => $game->title]);
+
+            return redirect()->route('user.games.index')->with('success', 'Game berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Error updating game', ['id' => $id, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return redirect()->route('user.games.edit', $id)->with('error', 'Gagal memperbarui game: ' . $e->getMessage());
         }
-
-        $game->update($data);
-
-        return redirect()->route('user.games.index')->with('success', 'Game berhasil diperbarui.');
     }
 
-    // Hapus game milik user
     public function destroy($id)
     {
         try {
-            // Cari game milik user yang login
             $game = Game::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-
-            // Log untuk debug
             Log::info('Attempting to delete game', ['id' => $game->id, 'title' => $game->title, 'user_id' => Auth::id()]);
 
-            // Hapus folder ekstraksi (games/<game_id>)
+            // Hapus folder ekstraksi
             $folderPath = "games/{$game->id}";
             if (Storage::disk('public')->exists($folderPath)) {
                 Log::info('Deleting folder', ['path' => $folderPath]);
@@ -138,37 +177,30 @@ class GameController extends Controller
                 Log::info('Folder not found', ['path' => $folderPath]);
             }
 
-            // Hapus file zip
-            $zipPath = $game->game_file ?? "games/game_{$game->id}.zip";
-            if (Storage::disk('public')->exists($zipPath)) {
-                Log::info('Deleting file', ['path' => $zipPath]);
-                Storage::disk('public')->delete($zipPath);
+            // Hapus file game
+            if ($game->game_file && Storage::disk('public')->exists($game->game_file)) {
+                Log::info('Deleting file', ['path' => $game->game_file]);
+                Storage::disk('public')->delete($game->game_file);
             } else {
-                Log::info('File not found', ['path' => $zipPath]);
+                Log::info('File not found', ['path' => $game->game_file]);
             }
 
-            // Hapus record game dari database
+            // Hapus gambar
+            if ($game->image && Storage::disk('public')->exists($game->image)) {
+                Log::info('Deleting image', ['path' => $game->image]);
+                Storage::disk('public')->delete($game->image);
+            } else {
+                Log::info('Image not found', ['path' => $game->image]);
+            }
+
             $game->delete();
             Log::info('Game deleted successfully', ['id' => $game->id]);
 
             return redirect()->route('user.games.index')->with('success', 'Game berhasil dihapus.');
         } catch (\Exception $e) {
-            Log::error('Error deleting game', ['id' => $id, 'error' => $e->getMessage()]);
+            Log::error('Error deleting game', ['id' => $id, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return redirect()->route('user.games.index')->with('error', 'Gagal menghapus game: ' . $e->getMessage());
         }
-    }
-
-    // Helper fungsi hapus folder rekursif
-    protected function deleteFolder($folder)
-    {
-        foreach(glob($folder . '/*') as $file) {
-            if (is_dir($file)) {
-                $this->deleteFolder($file);
-            } else {
-                unlink($file);
-            }
-        }
-        rmdir($folder);
     }
 
     // Halaman main game
@@ -235,7 +267,7 @@ class GameController extends Controller
         }
 
         // Log untuk debugging
-        \Log::info('HTML File Path: ' . $htmlFilePath);
+        Log::info('HTML File Path: ' . $htmlFilePath);
 
         // Kirim data game dan path file HTML ke view
         return view('user.games.play', [
