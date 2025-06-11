@@ -2,14 +2,18 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-    <!-- Pesan Sukses -->
+    <!-- Pesan Sukses atau Error -->
     @if(session('success'))
         <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+            {{ session('error') }}
+        </div>
+    @endif
 
-    
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Daftar Game</h1>
         <div class="space-x-2">
@@ -18,6 +22,9 @@
             </a>
             <a href="{{ route('admin.transactions.index') }}" class="inline-block px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
                 Halaman Approval
+            </a>
+            <a href="{{ route('admin.games.create') }}" class="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
+                + Tambah Game
             </a>
         </div>
     </div>
@@ -57,6 +64,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pemilik</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -76,7 +84,13 @@
                         </td>
                         <td class="px-6 py-4 text-gray-600">{{ $game->category->name ?? '-' }}</td>
                         <td class="px-6 py-4 text-gray-600">Rp {{ number_format($game->price, 0, ',', '.') }}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-6 py-4 text-gray-600">
+                            {{ $game->user ? $game->user->name : 'Admin' }}
+                        </td>
+                        <td class="px-6 py-4 text-center space-x-2">
+                            @if($game->user && $game->user->role === 'admin')
+                                <a href="{{ route('admin.games.edit', $game->id) }}" class="inline-block bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 transition">Edit</a>
+                            @endif
                             <form action="{{ route('admin.games.destroy', $game->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus game ini?')">
                                 @csrf
                                 @method('DELETE')
@@ -86,7 +100,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">Tidak ada game ditemukan.</td>
                     </tr>
                 @endforelse
             </tbody>
