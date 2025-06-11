@@ -32,8 +32,8 @@ class GameController extends Controller
             $query->where('category_id', $request->input('category_id'));
         }
 
-        // Ambil data games dari query yang sudah difilter
-        $games = $query->get();
+       // Paginate dengan 9 item per halaman
+        $games = $query->with(['user', 'category'])->paginate(9);
 
         // Kembalikan view dengan games dan categories
         return view('user.games.index', compact('games', 'categories'));

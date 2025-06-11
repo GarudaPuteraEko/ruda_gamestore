@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->group(function () {
     Route::resource('games', AdminAdminGameController::class)->names('admin.games');
     Route::resource('categories', CategoryController::class);
+    Route::get('/admin/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
     Route::get('/games/create', [App\Http\Controllers\Admin\AdminGameController::class, 'create'])->name('admin.games.create');
     Route::post('/games', [App\Http\Controllers\Admin\AdminGameController::class, 'store'])->name('admin.games.store');
     Route::get('/games/{id}/edit', [App\Http\Controllers\Admin\AdminGameController::class, 'edit'])->name('admin.games.edit');
