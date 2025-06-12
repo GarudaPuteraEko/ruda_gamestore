@@ -9,7 +9,7 @@
         <!-- Pesan Sukses -->
         @if(session('success'))
             <div class="mb-6 p-4 bg-blue-200 text-blue-700 rounded-lg shadow-md flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24:24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
                 {{ session('success') }}
@@ -35,7 +35,7 @@
                                 </div>
                             @endif
                             <!-- Badge Status -->
-                            <span class="absolute top-2 left-2 bg-{{ $transaction->status === 'success' ? 'green' : ($transaction->status === 'pending' ? 'yellow' : 'red') }}-500 text-white text-xs font-medium px-2 py-1 rounded">
+                            <span class="absolute top-2 left-2 bg-{{ $transaction->status === 'success' ? 'green-500' : ($transaction->status === 'pending' ? 'yellow-500' : 'red-500') }} text-white text-xs font-medium px-2 py-1 rounded z-10">
                                 {{ ucfirst($transaction->status) }}
                             </span>
                         </div>

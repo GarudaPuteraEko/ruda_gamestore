@@ -8,7 +8,11 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
     ],
-
+    safelist: [
+        'bg-green-500',
+        'bg-yellow-500',
+        'bg-red-500',
+    ],
     theme: {
         extend: {
             fontFamily: {
@@ -16,6 +20,5 @@ export default {
             },
         },
     },
-
     plugins: [forms],
 };
