@@ -66,7 +66,7 @@
                                 <a href="{{ route('user.games.create') }}" 
                                    class="{{ request()->routeIs('user.games.create') ? 'text-blue-800' : 'text-blue-600 hover:text-blue-800' }} px-4 py-2 font-medium transition-colors"
                                    aria-label="Halaman Tambah Game">
-                                    Tambah Game
+                                    Upolad Game
                                 </a>
                                 <a href="{{ route('cart.index') }}" 
                                    class="{{ request()->routeIs('cart.index') ? 'text-blue-800' : 'text-blue-600 hover:text-blue-800' }} px-4 py-2 font-medium transition-colors"
